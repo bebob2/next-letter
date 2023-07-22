@@ -1,17 +1,15 @@
 import { prisma } from '@/lib/prisma'
+import { subscriptionValidator } from '@/lib/validators'
 import { Prisma } from '@prisma/client'
 import { NextResponse } from 'next/server'
-
-type Body = { email: string }
-
-const roundsOfHashing = 12
+import { z } from 'zod'
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as Body
-
-  const { email } = body
+  const body = await request.json()
 
   try {
+    const { email } = subscriptionValidator.parse(body)
+
     const subscription = await prisma.subscription.create({
       data: {
         email,
@@ -20,6 +18,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ subscription })
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const messages = error.issues.map((issue) => issue.message)
+
+      return NextResponse.json({ messages }, { status: 422 })
+    }
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // bla
       if (error.code === 'P2002') {

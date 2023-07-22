@@ -5,18 +5,11 @@ import { Input } from './ui/input'
 import { Button } from './ui/button'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import axios, { AxiosError } from 'axios'
 import { useToast } from './ui/use-toast'
+import { SubscriptionPayload, subscriptionValidator } from '@/lib/validators'
 
 type Props = {}
-
-type FormData = {
-  email: string
-}
-const schema = z.object({
-  email: z.string().email({ message: 'E-Mail is not valid!' }),
-})
 
 export const SubscribeForm = (props: Props) => {
   const {
@@ -24,7 +17,9 @@ export const SubscribeForm = (props: Props) => {
     register,
     reset,
     formState: { errors },
-  } = useForm<FormData>({ resolver: zodResolver(schema) })
+  } = useForm<SubscriptionPayload>({
+    resolver: zodResolver(subscriptionValidator),
+  })
 
   const { toast } = useToast()
 
